@@ -1,0 +1,51 @@
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.dashboard-stats h2,
+.recent-bookings h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul li {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.wp-list-table {
+  border: 1px solid #ddd;
+  margin-top: 20px;
+}
+
+.wp-list-table th,
+.wp-list-table td {
+  text-align: left;
+  padding: 10px;
+}
+
+.wp-list-table th {
+  background-color: #f9f9f9;
+}
+
+.wp-list-table tbody tr:nth-child(even) {
+  background-color: #f5f5f5;
+}

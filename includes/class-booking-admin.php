@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;  // Exit if accessed directly.
 }
 
-class Booking_Admin
+class Admin_Dashboard
 {
     public static function init()
     {
@@ -13,103 +13,87 @@ class Booking_Admin
 
     public static function add_admin_menu()
     {
-        add_menu_page(
-            __('Booking Dashboard', 'booking-plugin'),
-            __('Booking', 'booking-plugin'),
-            'manage_options',
-            'booking-dashboard',
-            [__CLASS__, 'render_admin_dashboard'],
-            'dashicons-calendar-alt'
+        add_submenu_page(
+            'booking-dashboard',  // Parent slug
+            __('Admin Dashboard', 'booking-plugin'),  // Page title
+            __('Dashboard', 'booking-plugin'),  // Menu title
+            'manage_bookings',  // Capability
+            'booking-dashboard',  // Menu slug
+            [__CLASS__, 'render_dashboard_page']  // Callback function
         );
     }
 
-    public static function render_admin_dashboard()
+    /**
+     * Render the Admin Dashboard page.
+     */
+    public static function render_dashboard_page()
     {
+        if (!current_user_can('manage_bookings')) {
+            wp_die(__('You do not have sufficient permissions to access this page.', 'booking-plugin'));
+        }
+
+        // Enqueue custom admin CSS
+        wp_enqueue_style('admin-dashboard-css', plugin_dir_url(__FILE__) . '../assets/css/admin-dashboard.css');
+
         global $wpdb;
-        $table_name = $wpdb->prefix . 'booking';
+        $table_name = $wpdb->prefix . 'bookings';
 
-        // Handle delete action.
-        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
-            $id = intval($_GET['id']);
-            $wpdb->delete($table_name, ['id' => $id]);
-            echo '<p style="color: green;">' . esc_html__('Booking deleted successfully.', 'booking-plugin') . '</p>';
-        }
+        // Fetch data for stats
+        $total_bookings = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+        $pending_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status = 'pending'");
+        $confirmed_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status = 'confirmed'");
+        $canceled_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status = 'canceled'");
 
-        // Handle export action.
-        if (isset($_GET['action']) && $_GET['action'] === 'export') {
-            self::export_bookings_to_csv();
-        }
+        ?>
+        <div class="wrap">
+            <h1><?php echo esc_html(__('Admin Dashboard', 'booking-plugin')); ?></h1>
+            
+            <div class="dashboard-stats">
+                <h2><?php echo esc_html(__('Booking Statistics', 'booking-plugin')); ?></h2>
+                <ul>
+                    <li><?php echo esc_html(__('Total Bookings:', 'booking-plugin')); ?> <strong><?php echo esc_html($total_bookings); ?></strong></li>
+                    <li><?php echo esc_html(__('Pending Bookings:', 'booking-plugin')); ?> <strong><?php echo esc_html($pending_count); ?></strong></li>
+                    <li><?php echo esc_html(__('Confirmed Bookings:', 'booking-plugin')); ?> <strong><?php echo esc_html($confirmed_count); ?></strong></li>
+                    <li><?php echo esc_html(__('Canceled Bookings:', 'booking-plugin')); ?> <strong><?php echo esc_html($canceled_count); ?></strong></li>
+                </ul>
+            </div>
 
-        $results = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC", ARRAY_A);
+            <div class="recent-bookings">
+                <h2><?php echo esc_html(__('Recent Bookings', 'booking-plugin')); ?></h2>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th><?php echo esc_html(__('ID', 'booking-plugin')); ?></th>
+                            <th><?php echo esc_html(__('Customer Name', 'booking-plugin')); ?></th>
+                            <th><?php echo esc_html(__('Service', 'booking-plugin')); ?></th>
+                            <th><?php echo esc_html(__('Date', 'booking-plugin')); ?></th>
+                            <th><?php echo esc_html(__('Status', 'booking-plugin')); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    $recent_bookings = $wpdb->get_results("SELECT * FROM $table_name ORDER BY booking_date DESC LIMIT 5");
 
-        echo '<h1>' . esc_html__('Booking Dashboard', 'booking-plugin') . '</h1>';
-        echo '<a href="?page=booking-dashboard&action=export" class="button-primary">' . esc_html__('Export to CSV', 'booking-plugin') . '</a>';
-        echo '<table class="wp-list-table widefat fixed striped">';
-        echo '<thead>
-            <tr>
-                <th>' . esc_html__('Service Name', 'booking-plugin') . '</th>
-                <th>' . esc_html__('Customer Name', 'booking-plugin') . '</th>
-                <th>' . esc_html__('Email', 'booking-plugin') . '</th>
-                <th>' . esc_html__('Booking Date', 'booking-plugin') . '</th>
-                <th>' . esc_html__('Created At', 'booking-plugin') . '</th>
-            </tr>
-          </thead>';
-        echo '<tbody>';
-        if (!empty($results)) {
-            foreach ($results as $row) {
+        if (!empty($recent_bookings)) {
+            foreach ($recent_bookings as $booking) {
                 echo '<tr>';
-                echo '<td>' . esc_html($row['service_name']) . '</td>';
-                echo '<td>' . esc_html($row['customer_name']) . '</td>';
-                echo '<td>' . esc_html($row['customer_email']) . '</td>';
-                echo '<td>' . esc_html($row['booking_date']) . '</td>';
-                echo '<td>' . esc_html($row['created_at']) . '</td>';
+                echo '<td>' . esc_html($booking->id) . '</td>';
+                echo '<td>' . esc_html($booking->customer_name) . '</td>';
+                echo '<td>' . esc_html($booking->service_name) . '</td>';
+                echo '<td>' . esc_html($booking->booking_date) . '</td>';
+                echo '<td>' . esc_html(ucfirst($booking->status)) . '</td>';
                 echo '</tr>';
             }
         } else {
-            echo '<tr><td colspan="5">' . esc_html__('No bookings found.', 'booking-plugin') . '</td></tr>';
+            echo '<tr><td colspan="5">' . esc_html(__('No bookings found.', 'booking-plugin')) . '</td></tr>';
         }
-        echo '</tbody>';
-        echo '</table>';
-    }
-
-    private static function export_bookings_to_csv()
-    {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'booking';
-
-        // Fetch all bookings.
-        $results = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC", ARRAY_A);
-
-        if (empty($results)) {
-            wp_die(__('No data available for export.', 'booking-plugin'));
-        }
-
-        // Set headers for CSV download.
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename=bookings.csv');
-
-        // Open output stream.
-        $output = fopen('php://output', 'w');
-
-        // Add CSV header row.
-        fputcsv($output, ['ID', 'Service Name', 'Customer Name', 'Email', 'Booking Date', 'Created At']);
-
-        // Add data rows.
-        foreach ($results as $row) {
-            fputcsv(
-                $output,
-                [
-                $row['id'],
-                $row['service_name'],
-                $row['customer_name'],
-                $row['customer_email'],
-                $row['booking_date'],
-                $row['created_at'],
-                ]
-            );
-        }
-
-        fclose($output);
-        exit;
+        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
     }
 }
+
+Admin_Dashboard::init();

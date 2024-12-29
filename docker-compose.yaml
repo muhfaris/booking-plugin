@@ -10,6 +10,20 @@ services:
       MARIADB_DATABASE: db_wp
       MARIADB_USER: user_wp
       MARIADB_PASSWORD: secret_wp
+    networks:
+      - mysql-phpmyadmin
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8200:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - mysql-phpmyadmin
   wordpress:
     depends_on:
       - db
@@ -24,6 +38,10 @@ services:
       WORDPRESS_DB_USER: user_wp
       WORDPRESS_DB_PASSWORD: secret_wp
       WORDPRESS_DB_NAME: db_wp
+    networks:
+      - mysql-phpmyadmin
 volumes:
   db_data: {}
   wordpress_data: {}
+networks:
+  mysql-phpmyadmin:

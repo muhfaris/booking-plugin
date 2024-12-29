@@ -29,7 +29,7 @@ class Booking_Plugin
         // Admin-specific functionality.
         if (is_admin()) {
             include_once BOOKING_PLUGIN_PATH . 'includes/class-booking-admin.php';
-            Booking_Admin::init();
+            Admin_Dashboard::init();
         }
 
         // Frontend functionality.

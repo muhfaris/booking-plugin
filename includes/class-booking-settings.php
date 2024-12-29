@@ -19,12 +19,23 @@ class Booking_Settings
      */
     public static function add_settings_page()
     {
-        add_options_page(
-            __('Booking Settings', 'booking-plugin'),
-            __('Booking Settings', 'booking-plugin'),
-            'manage_options',
-            'booking-settings',
-            [__CLASS__, 'render_settings_page']
+        add_menu_page(
+            __('Booking', 'booking-plugin'),  // Page title
+            __('Booking', 'booking-plugin'),  // Menu title
+            'manage_bookings',  // Capability
+            'booking-dashboard',  // Menu slug
+            ['Admin_Dashboard', 'render_dashboard_page'],  // Callback function
+            'dashicons-calendar-alt',  // Icon
+            25  // Position
+        );
+
+        add_submenu_page(
+            'booking-dashboard',  // Parent slug
+            __('Settings', 'booking-plugin'),  // Page title
+            __('Settings', 'booking-plugin'),  // Menu title
+            'manage_bookings',  // Capability
+            'booking-settings',  // Menu slug
+            [__CLASS__, 'render_settings_page']  // Callback function
         );
     }
 
