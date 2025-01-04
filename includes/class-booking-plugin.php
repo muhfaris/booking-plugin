@@ -1,19 +1,21 @@
 <?php
 
-if (!defined('ABSPATH')) {
+if ( !defined( 'ABSPATH' ) ) {
     exit;  // Exit if accessed directly.
 }
 
 class Booking_Plugin
 {
+
     private static $instance;
 
     // Singleton pattern.
     public static function get_instance()
     {
-        if (!isset(self::$instance)) {
+        if ( !isset( self::$instance ) ) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -27,7 +29,7 @@ class Booking_Plugin
     private function define_hooks()
     {
         // Admin-specific functionality.
-        if (is_admin()) {
+        if ( is_admin() ) {
             include_once BOOKING_PLUGIN_PATH . 'includes/class-booking-admin.php';
             Admin_Dashboard::init();
         }

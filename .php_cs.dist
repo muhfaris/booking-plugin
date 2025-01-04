@@ -1,0 +1,17 @@
+
+<?php
+
+return PhpCsFixer\Config::create()
+    ->setRiskyAllowed( true )
+    ->setRules( [
+        '@PSR2'                   => true,
+        'array_syntax'            => ['syntax' => 'short'],
+        'align_multiline_comment' => true,
+        'method_argument_space'   => ['after_heredoc' => true],
+        'no_unused_imports'       => true,
+    ] )
+    ->setFinder(
+        PhpCsFixer\Finder::create()
+            ->in( __DIR__ . '/src' )
+            ->name( '*.php' )
+    );

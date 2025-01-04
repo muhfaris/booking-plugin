@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom plugin styles */
+.booking-plugin {
+  /* Your custom styles here */
+}

@@ -1,0 +1,10 @@
+includes:
+    - vendor/phpstan/extension-installer/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src/
+    bootstrap: bootstrap.php
+    plugins:
+        - WordPressPlugin
