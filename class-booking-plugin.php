@@ -22,6 +22,7 @@
  * @since 1.0.0
  */
 
+ob_start();
 // Prevent direct access
 if (!defined('ABSPATH')) {
     exit('Direct access is not allowed.');

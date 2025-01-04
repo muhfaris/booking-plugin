@@ -85,30 +85,67 @@ class Booking_Services
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($services as $service) { ?>
-                        <tr>
-                            <td>
-                                <?php if (!empty($service->image_url)) { ?>
-                                    <img src="<?php echo esc_url($service->image_url); ?>" alt="<?php echo esc_attr($service->service_name); ?>" style="max-width: 100px;">
-                                <?php } else { ?>
-                                    <span><?php esc_html_e('No Image', 'booking-plugin'); ?></span>
-                                <?php } ?>
-                            </td>
-                            <td><strong><?php echo esc_html($service->parent_id ? "-- " . $service->service_name : $service->service_name); ?></strong></strong></td>
-                            <td><?php echo esc_html($service->description); ?></td>
-                            <td><?php echo esc_html($service->price); ?></td>
-                            <td>
-                                <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=edit&service_id=' . $service->id)); ?>"
-                                    class="button button-secondary">
-                                    <?php echo esc_html__('Edit', 'booking-plugin'); ?>
-                                </a>
-                                <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=delete&service_id=' . $service->id)); ?>"
-                                    class="button button-secondary"
-                                    onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this service?', 'booking-plugin')); ?>');">
-                                    <?php echo esc_html__('Delete', 'booking-plugin'); ?>
-                                </a>
-                            </td>
-                        </tr>
+                    <?php foreach ($services as $service) {
+                        if (isset($service['parent'])) {
+                    ?>
+                            <tr>
+                                <td>
+                                    <?php if (!empty($service['parent']->image_url)) { ?>
+                                        <img src="<?php echo esc_url($service->image_url); ?>" alt="<?php echo esc_attr($service['parent']->service_name); ?>" style="max-width: 100px;">
+                                    <?php } else { ?>
+                                        <span><?php esc_html_e('No Image', 'booking-plugin'); ?></span>
+                                    <?php } ?>
+                                </td>
+                                <td><strong><?php echo esc_html($service['parent']->service_name); ?></strong></strong></td>
+                                <td><?php echo esc_html($service['parent']->description); ?></td>
+                                <td><?php echo esc_html($service['parent']->price); ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=edit&service_id=' . $service['parent']->service_id)); ?>"
+                                        class="button button-secondary">
+                                        <?php echo esc_html__('Edit', 'booking-plugin'); ?>
+                                    </a>
+                                    <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=delete&service_id=' . $service['parent']->service_id)); ?>"
+                                        class="button button-secondary"
+                                        onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this service?', 'booking-plugin')); ?>');">
+                                        <?php echo esc_html__('Delete', 'booking-plugin'); ?>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            <?php
+                        }
+                        if (isset($service['children'])) {
+                            foreach ($service['children'] as $child) {
+                            ?>
+                                <tr>
+                                    <td>
+                                        <?php if (!empty($child->image_url)) { ?>
+                                            <img src="<?php echo esc_url($child->image_url); ?>" alt="<?php echo esc_attr($child->service_name); ?>" style="max-width: 100px;">
+                                        <?php } else { ?>
+                                            <span><?php esc_html_e('No Image', 'booking-plugin'); ?></span>
+                                        <?php } ?>
+                                    </td>
+                                    <td><strong><?php echo "&nbsp;&nbsp;↳ " . esc_html($child->service_name); ?></strong></strong></td>
+                                    <td><?php echo esc_html($child->description); ?></td>
+                                    <td><?php echo esc_html($child->price); ?></td>
+                                    <td>
+                                        <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=edit&service_id=' . $child->service_id)); ?>"
+                                            class="button button-secondary">
+                                            <?php echo esc_html__('Edit', 'booking-plugin'); ?>
+                                        </a>
+                                        <a href="<?php echo esc_url(admin_url('admin.php?page=booking-manage_services&action=delete&service_id=' . $child->service_id)); ?>"
+                                            class="button button-secondary"
+                                            onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this service?', 'booking-plugin')); ?>');">
+                                            <?php echo esc_html__('Delete', 'booking-plugin'); ?>
+                                        </a>
+                                    </td>
+                                </tr>
+
+                        <?php
+
+                            }
+                        }
+                        ?>
                     <?php } ?>
                 </tbody>
             </table>
@@ -125,7 +162,7 @@ class Booking_Services
             $service = Booking_Query::get_service_with_cache(intval($_GET['service_id']));
         }
 
-        $services = Booking_Query::get_services_with_cache(['parent_id' => 0]);
+        $services = Booking_Query::get_services_filter_with_cache(['parent_id' => 0]);
 
 
         // Save logic
@@ -153,11 +190,10 @@ class Booking_Services
                 Booking_Query::create_service(compact('service_name', 'description', 'price', 'image_url', 'parent_id'));
             }
 
-            //wp_redirect(admin_url('admin.php?page=booking-manage_services'));
+            wp_redirect(admin_url('admin.php?page=booking-manage_services'));
             exit;
         }
 
-        ob_start();
     ?>
         <div class="wrap">
             <h1 class="wp-heading-inline">
